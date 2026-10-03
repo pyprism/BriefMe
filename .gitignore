@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.output/
+.wxt/
+*.zip
+safari/
+.idea/
+.DS_Store
+.env
+dist-e2e/
+test-results/
+playwright-report/
