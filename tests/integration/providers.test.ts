@@ -359,10 +359,22 @@ describe('FallbackProvider', () => {
       res.writeHead(status).end('{"error":"x"}'),
     );
     const notices: string[] = [];
-    const out = await collect(provider.chat(req({ onNotice: (n) => notices.push(n.reason) })));
+    const models: string[] = [];
+    const out = await collect(
+      provider.chat(
+        req({
+          onNotice: (n) => {
+            notices.push(n.reason);
+            models.push(n.model);
+          },
+        }),
+      ),
+    );
+    expect(models).toEqual(['router/model']);
     expect(out).toBe('from fallback');
     expect(notices).toHaveLength(1);
     expect(JSON.parse(fallback.requests[0]?.body ?? '').model).toBe('router/model');
+    expect(notices).toHaveLength(1);
   });
 
   it('falls back when the primary is unreachable', async () => {
