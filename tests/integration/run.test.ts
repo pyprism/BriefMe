@@ -133,7 +133,7 @@ describe('runSummary', () => {
       id: 'n',
       listModels: async () => [],
       async *chat(req) {
-        req.onNotice?.({ kind: 'fallback', reason: 'forbidden', message: 'x' });
+        req.onNotice?.({ kind: 'fallback', reason: 'forbidden', message: 'x', model: 'b' });
         yield 'hi';
       },
     };
