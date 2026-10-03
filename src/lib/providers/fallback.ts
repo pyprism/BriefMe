@@ -34,7 +34,12 @@ export class FallbackProvider implements LLMProvider {
       if (emitted || isAbort(error) || req.signal?.aborted) throw error;
       const info = toErrorInfo(error);
       if (!isFallbackWorthy(info.kind)) throw error;
-      req.onNotice?.({ kind: 'fallback', reason: info.kind, message: info.message });
+      req.onNotice?.({
+        kind: 'fallback',
+        reason: info.kind,
+        message: info.message,
+        model: this.fallbackModel,
+      });
     }
     yield* this.fallback.chat({ ...req, model: this.fallbackModel });
   }
