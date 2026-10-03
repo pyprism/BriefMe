@@ -1,0 +1,8 @@
+dist
+.wxt
+node_modules
+package-lock.json
+*.md
+dist-e2e
+test-results
+playwright-report
