@@ -767,6 +767,9 @@ test('closing or regenerating cancels a follow-up question in flight', async () 
   expect(last).toContain('fresh question');
   expect(last).not.toContain('slow question');
 
+  // Reset both flags: slowStarted is still true from the first slow question, so waiting on it
+  // alone would let Escape race ahead of the second request and the server would never see it.
+  slowStarted = false;
   slowClosed = false;
   await page.locator('#briefme-root .ask input').fill('slow question');
   await page.locator('#briefme-root .ask button').click();
