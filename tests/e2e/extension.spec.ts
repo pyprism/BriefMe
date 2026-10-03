@@ -187,6 +187,40 @@ test('uses the OpenRouter-style fallback when Ollama fails', async () => {
   await runOn(page);
   await expect(page.locator('#briefme-root .out').first()).toContainText('Fallback summary.');
   await expect(page.locator('#briefme-root .note')).toContainText('backup provider was used');
+  // The footer and the saved history name the model that wrote the summary, not the primary.
+  await expect(page.locator('#briefme-root .foot')).toContainText('router/model');
+  await expect(page.locator('#briefme-root .foot')).not.toContainText('mock-model');
+  const models = await worker.evaluate(async () =>
+    ((await chrome.storage.local.get('history')).history as { model: string }[]).map(
+      (e) => e.model,
+    ),
+  );
+  expect(models).toEqual(['router/model']);
+  await page.close();
+});
+
+test('changing the backup provider invalidates a summary the backup wrote', async () => {
+  ollamaMode = 'forbidden';
+  const backup = (model: string) => ({
+    fallbackEnabled: true,
+    fallbackBaseUrl: `${fallback.url}/api/v1`,
+    fallbackModel: model,
+  });
+  await configure(backup('router/one'));
+  const page = await openArticle();
+  await runOn(page);
+  await expect(page.locator('#briefme-root .foot')).toContainText('router/one');
+  const calls = () => fallback.requests.filter((r) => r.url.endsWith('/chat/completions')).length;
+  expect(calls()).toBe(1);
+
+  await runOn(page);
+  await expect(page.locator('#briefme-root .status')).toContainText('Loaded from your history');
+  expect(calls()).toBe(1);
+
+  await configure(backup('router/two'));
+  await runOn(page);
+  await expect(page.locator('#briefme-root .foot')).toContainText('router/two');
+  expect(calls()).toBe(2);
   await page.close();
 });
 
