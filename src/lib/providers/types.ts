@@ -9,6 +9,8 @@ export interface ProviderNotice {
   kind: 'fallback';
   reason: LLMErrorKind;
   message: string;
+  /** Model of the provider that took over. */
+  model: string;
 }
 
 export interface ChatRequest {
