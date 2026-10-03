@@ -1,0 +1,662 @@
+{
+  "extName": {
+    "message": "BriefMe"
+  },
+  "extDescription": {
+    "message": "Summarize articles and news with any LLM server: Ollama, LM Studio, llama.cpp, OpenRouter, OpenAI and more. Private by design."
+  },
+  "actionTitle": {
+    "message": "Summarize this page"
+  },
+  "cmdSummarize": {
+    "message": "Summarize the current page"
+  },
+  "menuPage": {
+    "message": "Summarize page with BriefMe"
+  },
+  "menuSelection": {
+    "message": "Summarize selection with BriefMe"
+  },
+  "menuLink": {
+    "message": "Summarize link with BriefMe"
+  },
+  "labelStyle": {
+    "message": "Summary style"
+  },
+  "labelLanguage": {
+    "message": "Output language"
+  },
+  "langAuto": {
+    "message": "Same as article"
+  },
+  "btnRegenerate": {
+    "message": "Regenerate"
+  },
+  "btnStop": {
+    "message": "Stop"
+  },
+  "btnCopy": {
+    "message": "Copy"
+  },
+  "btnCopied": {
+    "message": "Copied"
+  },
+  "btnDownload": {
+    "message": "Download .md"
+  },
+  "btnObsidian": {
+    "message": "Send to Obsidian"
+  },
+  "btnSpeak": {
+    "message": "Read aloud"
+  },
+  "btnStopSpeak": {
+    "message": "Stop reading"
+  },
+  "btnAsk": {
+    "message": "Ask"
+  },
+  "btnSettings": {
+    "message": "Settings"
+  },
+  "btnMinimize": {
+    "message": "Minimize"
+  },
+  "btnClose": {
+    "message": "Close"
+  },
+  "btnRetry": {
+    "message": "Retry"
+  },
+  "askPlaceholder": {
+    "message": "Ask a question about this article"
+  },
+  "statusConnecting": {
+    "message": "Connecting to the model..."
+  },
+  "statusChunk": {
+    "message": "Reading part"
+  },
+  "statusWriting": {
+    "message": "Writing summary..."
+  },
+  "statusCached": {
+    "message": "Loaded from your history"
+  },
+  "statusTesting": {
+    "message": "Testing connection..."
+  },
+  "statusConnected": {
+    "message": "Connected. Found"
+  },
+  "statusSaved": {
+    "message": "Saved."
+  },
+  "statusFixErrors": {
+    "message": "Fix the highlighted fields."
+  },
+  "noticeFallback": {
+    "message": "The primary provider failed, so the backup provider was used. Reason:"
+  },
+  "noticeTruncated": {
+    "message": "Article is very long; only part was used. Characters used:"
+  },
+  "unitMinRead": {
+    "message": "min read"
+  },
+  "unitSec": {
+    "message": "sec"
+  },
+  "unitTokens": {
+    "message": "tokens"
+  },
+  "unitModels": {
+    "message": "models"
+  },
+  "style_tldr": {
+    "message": "TL;DR (1-2 sentences)"
+  },
+  "style_bullets": {
+    "message": "Bullet points"
+  },
+  "style_detailed": {
+    "message": "Detailed"
+  },
+  "style_facts": {
+    "message": "Key facts"
+  },
+  "style_eli5": {
+    "message": "Explain simply"
+  },
+  "style_entities": {
+    "message": "People, numbers, quotes"
+  },
+  "style_bias": {
+    "message": "Bias and clickbait check"
+  },
+  "entities_keyPoints": {
+    "message": "Key points"
+  },
+  "entities_people": {
+    "message": "People"
+  },
+  "entities_organizations": {
+    "message": "Organizations"
+  },
+  "entities_numbers": {
+    "message": "Numbers"
+  },
+  "entities_dates": {
+    "message": "Dates"
+  },
+  "entities_quotes": {
+    "message": "Quotes"
+  },
+  "err_unreachable": {
+    "message": "Cannot reach the server."
+  },
+  "err_forbidden": {
+    "message": "The server rejected this extension (403)."
+  },
+  "err_unauthorized": {
+    "message": "Authentication failed. Check the API key or token."
+  },
+  "err_model_missing": {
+    "message": "Model not found on the server."
+  },
+  "err_rate_limit": {
+    "message": "Rate limit reached."
+  },
+  "err_server": {
+    "message": "The server returned an error."
+  },
+  "err_timeout": {
+    "message": "The model took too long to respond."
+  },
+  "err_aborted": {
+    "message": "Stopped."
+  },
+  "err_permission": {
+    "message": "Permission to contact the server has not been granted."
+  },
+  "err_config": {
+    "message": "BriefMe is not fully configured."
+  },
+  "err_no_content": {
+    "message": "No readable text found on this page."
+  },
+  "err_blocked": {
+    "message": "This page looks sensitive (it has a password field), so it was not summarized."
+  },
+  "err_invalid_url": {
+    "message": "Enter a valid http or https URL."
+  },
+  "err_required": {
+    "message": "This field is required."
+  },
+  "err_import": {
+    "message": "Could not read that file."
+  },
+  "errDisconnected": {
+    "message": "The connection to the extension was lost."
+  },
+  "hint_unreachable": {
+    "message": "Check that the model server is running and the URL in settings is correct."
+  },
+  "hint_forbidden": {
+    "message": "The server refused the request. Check the API key and its access settings. For Ollama, allow this extension with OLLAMA_ORIGINS (commands below)."
+  },
+  "hint_unauthorized": {
+    "message": "Open settings and re-enter the credential."
+  },
+  "hint_model_missing": {
+    "message": "Check the model name (Test connection lists the ones on the server). For OpenAI-compatible servers the URL must end with /v1, for example https://openrouter.ai/api/v1. Ollama: ollama pull <model>"
+  },
+  "hint_rate_limit": {
+    "message": "Wait a moment and retry, or use another model."
+  },
+  "hint_timeout": {
+    "message": "The model may still be loading or the hardware is slow. Retry, choose a smaller model, or raise the timeouts in settings (Summaries)."
+  },
+  "hint_permission": {
+    "message": "Open settings and press Test connection to grant access."
+  },
+  "hint_config": {
+    "message": "Open settings and choose a model."
+  },
+  "hint_no_content": {
+    "message": "PDF viewers, apps and empty pages cannot be read. Select text and try again."
+  },
+  "hint_blocked": {
+    "message": "Pages with password fields are skipped unless you confirm."
+  },
+  "guard_scheme": {
+    "message": "This kind of page cannot be summarized."
+  },
+  "guard_denied": {
+    "message": "This site is on your deny list."
+  },
+  "guard_not_allowed": {
+    "message": "This site is not on your allow list."
+  },
+  "panelIdle": {
+    "message": "Click the BriefMe toolbar button on a page to summarize it here."
+  },
+  "tab_settings": {
+    "message": "Settings"
+  },
+  "tab_prompts": {
+    "message": "Prompts"
+  },
+  "tab_history": {
+    "message": "History"
+  },
+  "tab_digest": {
+    "message": "Digest"
+  },
+  "tabHistory": {
+    "message": "History"
+  },
+  "tabDigest": {
+    "message": "Multi-tab digest"
+  },
+  "groupConnection": {
+    "message": "Primary provider"
+  },
+  "groupSummaries": {
+    "message": "Summaries"
+  },
+  "groupDisplay": {
+    "message": "Display"
+  },
+  "groupPrivacy": {
+    "message": "Site rules"
+  },
+  "groupAuto": {
+    "message": "Auto-summarize"
+  },
+  "groupPrompts": {
+    "message": "Prompts"
+  },
+  "groupFallback": {
+    "message": "Backup provider (optional)"
+  },
+  "groupIntegrations": {
+    "message": "Integrations"
+  },
+  "field_baseUrl": {
+    "message": "Server URL"
+  },
+  "field_authToken": {
+    "message": "API key / token"
+  },
+  "field_model": {
+    "message": "Model"
+  },
+  "field_style": {
+    "message": "Default style"
+  },
+  "field_language": {
+    "message": "Output language"
+  },
+  "field_temperature": {
+    "message": "Temperature"
+  },
+  "field_numCtx": {
+    "message": "Context size (num_ctx)"
+  },
+  "field_keepAlive": {
+    "message": "Keep alive"
+  },
+  "field_maxInputChars": {
+    "message": "Max input characters"
+  },
+  "field_fastModel": {
+    "message": "Fast model"
+  },
+  "field_fastBelowChars": {
+    "message": "Fast model below (chars)"
+  },
+  "field_siteModels": {
+    "message": "Per-site models"
+  },
+  "field_theme": {
+    "message": "Theme"
+  },
+  "field_position": {
+    "message": "Overlay position"
+  },
+  "field_uiMode": {
+    "message": "Show summary in"
+  },
+  "field_denyList": {
+    "message": "Never summarize on"
+  },
+  "field_allowList": {
+    "message": "Only summarize on"
+  },
+  "field_autoSummarize": {
+    "message": "Enable auto-summarize"
+  },
+  "field_autoSites": {
+    "message": "Auto-summarize sites"
+  },
+  "field_systemPrompt": {
+    "message": "System prompt"
+  },
+  "field_promptTemplate": {
+    "message": "Prompt template"
+  },
+  "field_fallbackEnabled": {
+    "message": "Use a backup provider if the primary fails"
+  },
+  "field_fallbackBaseUrl": {
+    "message": "Server URL"
+  },
+  "field_fallbackApiKey": {
+    "message": "API key / token"
+  },
+  "field_fallbackModel": {
+    "message": "Model"
+  },
+  "field_obsidianVault": {
+    "message": "Obsidian vault name"
+  },
+  "help_baseUrl": {
+    "message": "For example http://localhost:11434 (Ollama), http://localhost:1234/v1 (LM Studio), https://openrouter.ai/api/v1."
+  },
+  "help_authToken": {
+    "message": "Only if the server needs one. Stored on this device only."
+  },
+  "help_model": {
+    "message": "Run Test connection to list the models on the server."
+  },
+  "help_temperature": {
+    "message": "Lower is more faithful. 0.2 to 0.4 works well."
+  },
+  "help_numCtx": {
+    "message": "Chunk size for long articles. Ollama: also sent to the server. OpenAI-compatible servers: set it to the context length you loaded the model with."
+  },
+  "help_keepAlive": {
+    "message": "Ollama only. How long the model stays loaded, for example 10m."
+  },
+  "help_maxInputChars": {
+    "message": "Hard cap on article length sent to the model."
+  },
+  "help_fastModel": {
+    "message": "Optional smaller model for short articles."
+  },
+  "help_fastBelowChars": {
+    "message": "Use the fast model when the text is shorter than this."
+  },
+  "help_siteModels": {
+    "message": "One per line: example.com=llama3.1:8b"
+  },
+  "help_uiMode": {
+    "message": "Side panel is available in Chrome, Edge and Firefox."
+  },
+  "help_denyList": {
+    "message": "One domain per line. Subdomains are included."
+  },
+  "help_allowList": {
+    "message": "One domain per line. Leave empty to allow all sites."
+  },
+  "help_autoSummarize": {
+    "message": "Runs on article-like pages of the listed sites only. Access to each site is requested when you save."
+  },
+  "help_autoSites": {
+    "message": "One domain per line."
+  },
+  "help_systemPrompt": {
+    "message": "Leave empty for the default."
+  },
+  "help_promptTemplate": {
+    "message": "Variables: {{title}} {{url}} {{site}} {{text}} {{instruction}} {{language}}. Leave empty for the default."
+  },
+  "help_fallbackBaseUrl": {
+    "message": "Pick a provider above, or enter its URL."
+  },
+  "help_fallbackApiKey": {
+    "message": "Only if the server needs one. Stored on this device only."
+  },
+  "help_fallbackModel": {
+    "message": "Model id on the backup server. Test connection lists them."
+  },
+  "help_obsidianVault": {
+    "message": "Adds a button that creates a note in this vault."
+  },
+  "opt_auto": {
+    "message": "Follow system"
+  },
+  "opt_light": {
+    "message": "Light"
+  },
+  "opt_dark": {
+    "message": "Dark"
+  },
+  "opt_top_right": {
+    "message": "Top right"
+  },
+  "opt_top_left": {
+    "message": "Top left"
+  },
+  "opt_bottom_right": {
+    "message": "Bottom right"
+  },
+  "opt_bottom_left": {
+    "message": "Bottom left"
+  },
+  "opt_overlay": {
+    "message": "Overlay on the page"
+  },
+  "opt_sidepanel": {
+    "message": "Side panel"
+  },
+  "corsIntro": {
+    "message": "Ollama only accepts requests from allowed origins. Set OLLAMA_ORIGINS, restart Ollama, then test again:"
+  },
+  "hintPull": {
+    "message": "No models yet. For Ollama run:"
+  },
+  "btnTest": {
+    "message": "Test connection"
+  },
+  "btnSave": {
+    "message": "Save"
+  },
+  "btnReset": {
+    "message": "Reset all settings"
+  },
+  "confirmReset": {
+    "message": "Reset all settings and secrets?"
+  },
+  "wizardTitle": {
+    "message": "Welcome to BriefMe"
+  },
+  "wizardStep": {
+    "message": "Step"
+  },
+  "wizardWelcome": {
+    "message": "BriefMe sends the text of the page you are reading to the AI model server you choose and shows a summary. Nothing goes anywhere else. Pick your provider, or enter a URL."
+  },
+  "wizardModel": {
+    "message": "Choose the model to use."
+  },
+  "wizardPrefs": {
+    "message": "Choose how summaries should look. You can change all of this later."
+  },
+  "btnBack": {
+    "message": "Back"
+  },
+  "btnNext": {
+    "message": "Next"
+  },
+  "btnFinish": {
+    "message": "Finish"
+  },
+  "fallbackWarning": {
+    "message": "When on, page text is sent to the backup provider if the primary fails. If the backup is a hosted service, that is a third party. Leave it off to keep text on your own machines."
+  },
+  "promptsIntro": {
+    "message": "Custom prompts appear in the style menu. Leave a field empty to use the default."
+  },
+  "promptsEmpty": {
+    "message": "No custom prompts yet."
+  },
+  "btnEdit": {
+    "message": "Edit"
+  },
+  "btnDelete": {
+    "message": "Delete"
+  },
+  "btnNewPrompt": {
+    "message": "New prompt"
+  },
+  "btnExport": {
+    "message": "Export"
+  },
+  "btnImport": {
+    "message": "Import"
+  },
+  "promptName": {
+    "message": "Name"
+  },
+  "promptVars": {
+    "message": "Variables: {{title}} {{url}} {{site}} {{text}} {{instruction}} {{language}}"
+  },
+  "btnCancel": {
+    "message": "Cancel"
+  },
+  "historySearch": {
+    "message": "Search"
+  },
+  "historyEmpty": {
+    "message": "Nothing here yet."
+  },
+  "btnShow": {
+    "message": "Show"
+  },
+  "btnExportAll": {
+    "message": "Export all (JSON)"
+  },
+  "btnClearHistory": {
+    "message": "Clear history"
+  },
+  "confirmClearHistory": {
+    "message": "Delete all saved summaries?"
+  },
+  "statSummaries": {
+    "message": "summaries"
+  },
+  "statMinutesSaved": {
+    "message": "minutes saved (estimate)"
+  },
+  "digestIntro": {
+    "message": "Pick open tabs and get one combined briefing. BriefMe asks for access to the selected sites and to the tab list."
+  },
+  "btnLoadTabs": {
+    "message": "Load tabs"
+  },
+  "btnBuildDigest": {
+    "message": "Create digest"
+  },
+  "digestNeedTabs": {
+    "message": "Access to the tab list was not granted."
+  },
+  "digestNoTabs": {
+    "message": "No web tabs in this window."
+  },
+  "digestSelectSome": {
+    "message": "Select at least one tab."
+  },
+  "digestNothing": {
+    "message": "No readable text in the selected tabs."
+  },
+  "digestSources": {
+    "message": "Sources"
+  },
+  "labelCopyAs": {
+    "message": "Copy format"
+  },
+  "copyMarkdown": {
+    "message": "Markdown"
+  },
+  "copyPlain": {
+    "message": "Plain text"
+  },
+  "btnDiagnostics": {
+    "message": "Copy diagnostics"
+  },
+  "statusDiagnostics": {
+    "message": "Copied. It contains settings and permissions, no page text and no keys."
+  },
+  "statusSavedNoAccess": {
+    "message": "Saved, but access was not granted for:"
+  },
+  "hintSavedNoAccess": {
+    "message": "Press Save again and allow access. Without it the fallback provider and auto-summarize cannot run on those sites."
+  },
+  "field_primaryType": {
+    "message": "API type"
+  },
+  "field_fallbackType": {
+    "message": "API type"
+  },
+  "opt_ollama": {
+    "message": "Ollama API"
+  },
+  "opt_openai": {
+    "message": "OpenAI-compatible API"
+  },
+  "help_primaryType": {
+    "message": "Pick a provider above, or set this by hand. Most servers (LM Studio, llama.cpp, vLLM, OpenRouter, OpenAI) use the OpenAI-compatible API. Ollama has its own."
+  },
+  "help_fallbackType": {
+    "message": "Same choices as the primary. The backup can be any provider."
+  },
+  "presetsLabel": {
+    "message": "Provider"
+  },
+  "presetOther": {
+    "message": "Other"
+  },
+  "hintNoModels": {
+    "message": "The server reports no models. Load or download one first."
+  },
+  "digestSkipped": {
+    "message": "Skipped"
+  },
+  "blockedLink": {
+    "message": "The linked page has a password field, so it was not summarized. Open it and run BriefMe there to override."
+  },
+  "diagNoAccess": {
+    "message": "BriefMe does not have access to this address yet. Press Test connection again and allow access. If it was denied, open the browser extension settings for BriefMe and set site access."
+  },
+  "diagBlocked": {
+    "message": "Something answered at this address, but the browser blocked the reply. Check the browser extension settings for BriefMe (site access for this address) and any privacy or shields setting that blocks requests to private or local addresses."
+  },
+  "diagNoRoute": {
+    "message": "The browser could not connect at all. Check the address and port, that the server is running and listens on the network (for Ollama: OLLAMA_HOST=0.0.0.0), and that any VPN (for example Tailscale) is connected on this device."
+  },
+  "diagAccess": {
+    "message": "Site access granted"
+  },
+  "yes": {
+    "message": "yes"
+  },
+  "no": {
+    "message": "no"
+  },
+  "field_firstResponseTimeoutSec": {
+    "message": "Wait for first reply (seconds)"
+  },
+  "help_firstResponseTimeoutSec": {
+    "message": "How long to wait before the first word arrives. Includes loading the model and reading the article. Raise it for slow hardware or large models. Default 600."
+  },
+  "field_idleTimeoutSec": {
+    "message": "Max silence while writing (seconds)"
+  },
+  "help_idleTimeoutSec": {
+    "message": "Give up if the server sends nothing for this long once the answer has started. Default 180."
+  }
+}

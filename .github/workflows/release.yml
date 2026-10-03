@@ -1,0 +1,100 @@
+name: Release
+
+# Runs when you publish a GitHub release. Builds every browser and attaches the files to it.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing release tag to build and attach files to (for example v0.1.0)
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+
+jobs:
+  chrome-firefox:
+    name: Chrome, Edge and Firefox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - name: Check the tag is a plain version
+        run: |
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag '$TAG' must look like v1.2.3. Browser extension versions cannot have suffixes like -beta."
+            exit 1
+          fi
+      - name: Use the release tag as the extension version
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - name: Build zips
+        run: npm run zip
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" dist/*.zip --clobber
+
+  safari:
+    name: Safari (macOS, unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: npm
+      - run: npm ci
+      - name: Check the tag is a plain version
+        run: |
+          VERSION="${TAG#v}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag '$TAG' must look like v1.2.3. Browser extension versions cannot have suffixes like -beta."
+            exit 1
+          fi
+      - name: Use the release tag as the extension version
+        run: npm version "${TAG#v}" --no-git-tag-version --allow-same-version
+      - name: Build web extension for Safari
+        run: npx wxt build -b safari
+      - name: Convert to an Xcode project
+        run: |
+          xcrun safari-web-extension-converter dist/safari-mv3 \
+            --project-location safari \
+            --app-name BriefMe \
+            --bundle-identifier io.github.briefme.app \
+            --macos-only --no-open --no-prompt --force
+      - name: List Xcode schemes
+        run: xcodebuild -list -project safari/BriefMe/BriefMe.xcodeproj
+      - name: Build the app without code signing
+        run: |
+          xcodebuild -project safari/BriefMe/BriefMe.xcodeproj \
+            -scheme "BriefMe" \
+            -configuration Release \
+            -derivedDataPath safari/build \
+            CODE_SIGNING_ALLOWED=NO \
+            build
+      - name: Package
+        run: |
+          VERSION="${TAG#v}"
+          mkdir -p out
+          ditto -c -k --keepParent safari/build/Build/Products/Release/BriefMe.app "out/briefme-${VERSION}-safari-macos-unsigned.zip"
+          zip -qr "out/briefme-${VERSION}-safari-xcode-project.zip" safari/BriefMe
+      - name: Attach to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$TAG" out/*.zip --clobber
