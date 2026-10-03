@@ -32,9 +32,40 @@ describe('cache key', () => {
     ['input limit', (i) => ({ ...i, settings: { ...i.settings, maxInputChars: 5000 } })],
     ['context size', (i) => ({ ...i, settings: { ...i.settings, numCtx: 4096 } })],
     ['temperature', (i) => ({ ...i, settings: { ...i.settings, temperature: 0.9 } })],
+    [
+      'backup being turned on',
+      (i) => ({ ...i, settings: { ...i.settings, fallbackEnabled: true } }),
+    ],
   ];
   it.each(changes)('changes when the %s changes', (_name, change) => {
     expect(key(change(base()))).not.toBe(key(base()));
+  });
+
+  describe('backup provider', () => {
+    const on = (over: Partial<Settings> = {}) =>
+      base({
+        fallbackEnabled: true,
+        fallbackType: 'openai',
+        fallbackBaseUrl: 'https://b.example/v1',
+        fallbackModel: 'big',
+        ...over,
+      });
+
+    it('changes when the backup type, URL or model changes', () => {
+      expect(key(on({ fallbackType: 'ollama' }))).not.toBe(key(on()));
+      expect(key(on({ fallbackBaseUrl: 'https://c.example/v1' }))).not.toBe(key(on()));
+      expect(key(on({ fallbackModel: 'small' }))).not.toBe(key(on()));
+    });
+
+    it('changes when the backup is turned off', () => {
+      expect(key(base({ ...on(), fallbackEnabled: false }))).not.toBe(key(on()));
+    });
+
+    it('ignores leftover backup fields while the backup is off', () => {
+      const a = base({ fallbackEnabled: false, fallbackModel: 'x', fallbackBaseUrl: 'http://x' });
+      const b = base({ fallbackEnabled: false, fallbackModel: 'y', fallbackBaseUrl: 'http://y' });
+      expect(key(a)).toBe(key(b));
+    });
   });
 
   it('changes when a custom prompt is edited under the same id', () => {

@@ -14,6 +14,10 @@ export interface CacheKeyInput {
     | 'maxInputChars'
     | 'numCtx'
     | 'temperature'
+    | 'fallbackEnabled'
+    | 'fallbackType'
+    | 'fallbackBaseUrl'
+    | 'fallbackModel'
   >;
   model: string;
   style: StyleId;
@@ -29,7 +33,7 @@ export function cacheKeyParts(input: CacheKeyInput): string[] {
   const custom = findCustomPrompt(style, settings.customPrompts);
   const instruction = isCustomStyle(style) ? '' : STYLE_INSTRUCTIONS[style];
   return [
-    'v2',
+    'v3',
     article.url,
     article.text,
     settings.primaryType,
@@ -47,5 +51,10 @@ export function cacheKeyParts(input: CacheKeyInput): string[] {
     String(settings.maxInputChars),
     String(settings.numCtx),
     String(settings.temperature),
+    // A summary may have been written by the backup, so its setup is part of the identity.
+    settings.fallbackEnabled ? 'backup-on' : 'backup-off',
+    settings.fallbackEnabled ? settings.fallbackType : '',
+    settings.fallbackEnabled ? settings.fallbackBaseUrl : '',
+    settings.fallbackEnabled ? settings.fallbackModel : '',
   ];
 }
