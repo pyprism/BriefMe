@@ -15,7 +15,7 @@ import {
   type TabMessage,
 } from '../lib/messaging/types';
 import { t } from '../lib/i18n';
-import { resolvePanelOpen, type PanelOpen } from '../lib/panel';
+import { openPanelOnClick, resolvePanelOpen, type PanelOpen } from '../lib/panel';
 import { pickModel, type Settings } from '../lib/settings-schema';
 import { addHistory, addStats, findCached, hashKey } from '../lib/storage/history';
 import { loadSecrets, loadSettings } from '../lib/storage/settings';
@@ -50,13 +50,14 @@ let uiModeCache: Settings['uiMode'] | null = null;
  * called synchronously from the event listener, using the cached mode.
  */
 function openPanelNow(tab: Browser.tabs.Tab): Promise<PanelOpen> {
-  if (uiModeCache !== 'sidepanel' || !sidePanelSupported() || tab.id === undefined) {
-    return Promise.resolve('skipped');
-  }
-  return openSidePanel(tab.id).then(
-    () => 'opened' as const,
-    () => 'failed' as const,
-  );
+  return openPanelOnClick({
+    cachedMode: uiModeCache,
+    supported: sidePanelSupported(),
+    tabId: tab.id,
+    loadMode: () => loadSettings().then((settings) => settings.uiMode),
+    open: openSidePanel,
+    remember: (mode) => (uiModeCache = mode),
+  });
 }
 
 async function openSidePanel(tabId: number): Promise<void> {
@@ -323,6 +324,8 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
     const started = Date.now();
     post({ type: 'status', phase: 'connecting' });
     let summary = '';
+    // The model that actually wrote the summary: the backup's when it took over.
+    let usedModel = model;
     for await (const event of runSummary({
       provider: createProvider(settings, secrets),
       article,
@@ -335,6 +338,7 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
     })) {
       if (event.type === 'token') summary += event.text;
       else if (event.type === 'replace') summary = event.text;
+      else if (event.type === 'notice') usedModel = event.notice.model;
       post(event);
     }
     const elapsedSec = Math.max(1, Math.round((Date.now() - started) / 1000));
@@ -344,7 +348,7 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
       url: article.url,
       title: article.title,
       style,
-      model,
+      model: usedModel,
       language,
       summary,
       createdAt: Date.now(),
@@ -355,7 +359,7 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
     post({
       type: 'done',
       summary,
-      model,
+      model: usedModel,
       cached: false,
       readMinutes,
       elapsedSec,
@@ -388,9 +392,11 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
     });
     const provider = createProvider(settings, secrets);
     let answer = '';
+    let usedModel = model;
     for await (const token of provider.chat({
       model,
       messages,
+      onNotice: (notice) => (usedModel = notice.model),
       temperature: settings.temperature,
       numCtx: settings.numCtx,
       keepAlive: settings.keepAlive || undefined,
@@ -402,7 +408,7 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
     post({
       type: 'done',
       summary: answer,
-      model,
+      model: usedModel,
       cached: false,
       readMinutes: 0,
       elapsedSec: 0,
