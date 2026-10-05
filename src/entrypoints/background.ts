@@ -23,6 +23,7 @@ import { chunkBudget, estimateTokens, readingMinutes } from '../lib/summarize/ch
 import { cacheKeyParts } from '../lib/summarize/cache-key';
 import { buildChatMessages } from '../lib/summarize/prompts';
 import { runSummary } from '../lib/summarize/run';
+import { Gate } from '../lib/gate';
 import { hostInList, hostOf, originPattern } from '../lib/url';
 
 type Port = Browser.runtime.Port;
@@ -31,6 +32,9 @@ const MENU_PAGE = 'briefme-page';
 const MENU_SELECTION = 'briefme-selection';
 const MENU_LINK = 'briefme-link';
 const KEEPALIVE_MS = 20_000;
+
+/** One model request at a time by default; later ones wait here, not on the server. */
+const modelGate = new Gate(1);
 const MAX_LINK_BYTES = 3_000_000;
 
 interface SidebarApi {
@@ -293,6 +297,7 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
   const controller = new AbortController();
   port.onDisconnect.addListener(() => controller.abort());
   const stopKeepAlive = keepAlive();
+  let releaseSlot: (() => void) | undefined;
   try {
     const loaded = await loadSettings();
     await checkReady(loaded);
@@ -321,6 +326,11 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
       }
     }
 
+    modelGate.setLimit(settings.maxParallelRequests);
+    releaseSlot = await modelGate.acquire(controller.signal, (ahead) =>
+      post({ type: 'status', phase: 'queued', ahead }),
+    );
+    // The clock for timeouts and the duration shown start now, not while waiting in the queue.
     const started = Date.now();
     post({ type: 'status', phase: 'connecting' });
     let summary = '';
@@ -368,6 +378,7 @@ async function handleSummarize(port: Port, msg: Extract<ClientMessage, { type: '
   } catch (error) {
     if (!controller.signal.aborted) post({ type: 'error', error: toErrorInfo(error) });
   } finally {
+    releaseSlot?.();
     stopKeepAlive();
   }
 }
@@ -377,6 +388,7 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
   const controller = new AbortController();
   port.onDisconnect.addListener(() => controller.abort());
   const stopKeepAlive = keepAlive();
+  let releaseSlot: (() => void) | undefined;
   try {
     const loaded = await loadSettings();
     await checkReady(loaded);
@@ -391,6 +403,8 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
       maxChars: Math.min(settings.maxInputChars, chunkBudget(settings.numCtx)),
     });
     const provider = createProvider(settings, secrets);
+    modelGate.setLimit(settings.maxParallelRequests);
+    releaseSlot = await modelGate.acquire(controller.signal);
     let answer = '';
     let usedModel = model;
     for await (const token of provider.chat({
@@ -417,6 +431,7 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
   } catch (error) {
     if (!controller.signal.aborted) post({ type: 'error', error: toErrorInfo(error) });
   } finally {
+    releaseSlot?.();
     stopKeepAlive();
   }
 }
