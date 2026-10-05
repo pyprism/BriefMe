@@ -364,11 +364,13 @@ export class SummaryView {
     switch (msg.type) {
       case 'status':
         this.setStatus(
-          msg.phase === 'chunk'
-            ? `${t('statusChunk')} ${msg.index}/${msg.total}`
-            : msg.phase === 'writing'
-              ? t('statusWriting')
-              : t('statusConnecting'),
+          msg.phase === 'queued'
+            ? `${t('statusQueued')} (${msg.ahead ?? 1})`
+            : msg.phase === 'chunk'
+              ? `${t('statusChunk')} ${msg.index}/${msg.total}`
+              : msg.phase === 'writing'
+                ? t('statusWriting')
+                : t('statusConnecting'),
         );
         break;
       case 'token':
