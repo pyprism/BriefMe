@@ -658,5 +658,14 @@
   },
   "help_idleTimeoutSec": {
     "message": "Give up if the server sends nothing for this long once the answer has started. Default 180."
+  },
+  "statusQueued": {
+    "message": "Waiting for other summaries to finish, ahead of this one:"
+  },
+  "field_maxParallelRequests": {
+    "message": "Summaries at the same time"
+  },
+  "help_maxParallelRequests": {
+    "message": "How many pages are sent to the model at once. Others wait in BriefMe, so their timeouts only start when their turn comes. Keep 1 for small hardware; raise it only if the server really runs requests in parallel (for Ollama: OLLAMA_NUM_PARALLEL)."
   }
 }
