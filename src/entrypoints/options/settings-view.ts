@@ -78,6 +78,7 @@ function groups(settings: Settings): Record<string, Field[]> {
       { key: 'maxInputChars', kind: 'number', step: '1000' },
       { key: 'firstResponseTimeoutSec', kind: 'number', step: '30' },
       { key: 'idleTimeoutSec', kind: 'number', step: '30' },
+      { key: 'maxParallelRequests', kind: 'number', step: '1' },
       { key: 'fastModel', kind: 'text', datalist: 'models' },
       { key: 'fastBelowChars', kind: 'number', step: '500' },
       { key: 'siteModels', kind: 'textarea' },
