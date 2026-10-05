@@ -32,6 +32,9 @@ let siteUrl: string;
 let ollama: MockServer;
 let fallback: MockServer;
 let ollamaMode: 'ok' | 'forbidden' = 'ok';
+let inFlight = 0;
+let maxInFlight = 0;
+let replyDelayMs = 0;
 let slowStarted = false;
 let slowClosed = false;
 
@@ -93,6 +96,10 @@ test.beforeAll(async () => {
       }
       return;
     }
+    inFlight++;
+    maxInFlight = Math.max(maxInFlight, inFlight);
+    res.on('close', () => inFlight--);
+    if (replyDelayMs) await new Promise((r) => setTimeout(r, replyDelayMs));
     return writeOllamaStream(res, ['- Mock ', 'summary ', 'of the article.']);
   });
   fallback = await startServer((_req, res) => writeSse(res, ['Fallback ', 'summary.']));
@@ -129,6 +136,9 @@ test.beforeEach(() => {
   fallback.requests.length = 0;
   slowStarted = false;
   slowClosed = false;
+  inFlight = 0;
+  maxInFlight = 0;
+  replyDelayMs = 0;
 });
 
 test('summarizes a page into the overlay and shows reading stats', async () => {
@@ -819,4 +829,63 @@ test('changing a prompt or the provider setting invalidates the cached summary',
   await expect(page.locator('#briefme-root .status')).toContainText('Loaded from your history');
   expect(chatCalls()).toBe(2);
   await page.close();
+});
+
+test('summaries of several pages wait their turn instead of timing out on the server', async () => {
+  replyDelayMs = 600;
+  await configure({});
+  const pages = [
+    await openArticle('/article?one'),
+    await openArticle('/article?two'),
+    await openArticle('/article?three'),
+  ];
+  for (const page of pages) await runOn(page);
+
+  // The pages behind the first one are told they are waiting.
+  await expect(pages[2]!.locator('#briefme-root .status')).toContainText(
+    'Waiting for other summaries',
+  );
+  for (const page of pages) {
+    await expect(page.locator('#briefme-root .out').first()).toContainText('Mock summary', {
+      timeout: 15_000,
+    });
+  }
+  expect(chatCalls()).toBe(3);
+  expect(maxInFlight).toBe(1);
+  for (const page of pages) await page.close();
+});
+
+test('a waiting summary that is closed never reaches the server', async () => {
+  replyDelayMs = 800;
+  await configure({});
+  const first = await openArticle('/article?first');
+  const second = await openArticle('/article?second');
+  await runOn(first);
+  await expect.poll(() => inFlight).toBe(1);
+  await runOn(second);
+  await expect(second.locator('#briefme-root .status')).toContainText(
+    'Waiting for other summaries',
+  );
+  await second.keyboard.press('Escape');
+  await expect(first.locator('#briefme-root .out').first()).toContainText('Mock summary', {
+    timeout: 10_000,
+  });
+  await first.waitForTimeout(500);
+  expect(chatCalls()).toBe(1);
+  await first.close();
+  await second.close();
+});
+
+test('the parallel setting lets pages run at the same time', async () => {
+  replyDelayMs = 600;
+  await configure({ maxParallelRequests: 2 });
+  const pages = [await openArticle('/article?a'), await openArticle('/article?b')];
+  for (const page of pages) await runOn(page);
+  for (const page of pages) {
+    await expect(page.locator('#briefme-root .out').first()).toContainText('Mock summary', {
+      timeout: 15_000,
+    });
+  }
+  expect(maxInFlight).toBe(2);
+  for (const page of pages) await page.close();
 });
