@@ -78,6 +78,24 @@ jobs:
             --app-name BriefMe \
             --bundle-identifier io.github.briefme.app \
             --macos-only --no-open --no-prompt --force
+      - name: Make the app and extension bundle identifiers consistent
+        run: |
+          # The converter names the extension <id>.Extension but derives the app id from the
+          # project name, so Xcode rejects the build (the extension id must start with the app id).
+          APP_ID=io.github.briefme.app
+          PBX=safari/BriefMe/BriefMe.xcodeproj/project.pbxproj
+          echo "Identifiers before:"
+          grep -h "PRODUCT_BUNDLE_IDENTIFIER" "$PBX" | sort -u
+          sed -i '' -E "s/(PRODUCT_BUNDLE_IDENTIFIER = )\"?io\.github\.briefme\.BriefMe\"?;/\1${APP_ID};/" "$PBX"
+          echo "Identifiers after:"
+          grep -h "PRODUCT_BUNDLE_IDENTIFIER" "$PBX" | sort -u
+          grep -rn "Extension\"" safari/BriefMe/BriefMe --include=*.swift || true
+          # Quotes around the value are optional in project files.
+          if ! grep -Eq "PRODUCT_BUNDLE_IDENTIFIER = \"?${APP_ID//./\\.}\"?;" "$PBX" \
+            || ! grep -Eq "PRODUCT_BUNDLE_IDENTIFIER = \"?${APP_ID//./\\.}\.Extension\"?;" "$PBX"; then
+            echo "::error::App and extension bundle identifiers do not match ${APP_ID} and ${APP_ID}.Extension"
+            exit 1
+          fi
       - name: List Xcode schemes
         run: xcodebuild -list -project safari/BriefMe/BriefMe.xcodeproj
       - name: Build the app without code signing
