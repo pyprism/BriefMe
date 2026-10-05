@@ -40,6 +40,8 @@ export interface Settings {
   firstResponseTimeoutSec: number;
   /** Seconds of silence allowed once the answer is streaming. */
   idleTimeoutSec: number;
+  /** Summaries sent to the model at the same time. Others wait their turn in BriefMe. */
+  maxParallelRequests: number;
   theme: Theme;
   position: Position;
   uiMode: UiMode;
@@ -80,6 +82,7 @@ export const DEFAULT_SETTINGS: Settings = {
   maxInputChars: 80000,
   firstResponseTimeoutSec: 600,
   idleTimeoutSec: 180,
+  maxParallelRequests: 1,
   theme: 'auto',
   position: 'top-right',
   uiMode: 'overlay',
@@ -188,6 +191,7 @@ export function validateSettings(input: Partial<Settings>): {
       num(input.firstResponseTimeoutSec, 10, 7200, d.firstResponseTimeoutSec),
     ),
     idleTimeoutSec: Math.round(num(input.idleTimeoutSec, 10, 3600, d.idleTimeoutSec)),
+    maxParallelRequests: Math.round(num(input.maxParallelRequests, 1, 8, d.maxParallelRequests)),
     theme: oneOf(input.theme, ['auto', 'light', 'dark'], d.theme),
     position: oneOf(
       input.position,
