@@ -26,7 +26,14 @@ export type ClientMessage =
 
 /** Background -> content/panel, over a port. */
 export type ServerMessage =
-  | { type: 'status'; phase: 'connecting' | 'chunk' | 'writing'; index?: number; total?: number }
+  | {
+      type: 'status';
+      phase: 'queued' | 'connecting' | 'chunk' | 'writing';
+      index?: number;
+      total?: number;
+      /** Requests in front of this one (phase 'queued'). */
+      ahead?: number;
+    }
   | { type: 'token'; text: string }
   | { type: 'replace'; text: string }
   | { type: 'notice'; notice: ProviderNotice }
