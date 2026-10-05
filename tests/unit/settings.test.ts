@@ -95,6 +95,18 @@ describe('timeouts', () => {
   });
 });
 
+describe('parallel requests', () => {
+  it('defaults to one at a time and clamps the range', () => {
+    expect(validateSettings({}).settings.maxParallelRequests).toBe(1);
+    expect(validateSettings({ maxParallelRequests: 0 }).settings.maxParallelRequests).toBe(1);
+    expect(validateSettings({ maxParallelRequests: 99 }).settings.maxParallelRequests).toBe(8);
+    expect(validateSettings({ maxParallelRequests: 2.6 }).settings.maxParallelRequests).toBe(3);
+    expect(
+      validateSettings({ maxParallelRequests: 'x' as never }).settings.maxParallelRequests,
+    ).toBe(1);
+  });
+});
+
 describe('provider types', () => {
   it('uses the same default type for primary and backup', () => {
     const { settings } = validateSettings({});
