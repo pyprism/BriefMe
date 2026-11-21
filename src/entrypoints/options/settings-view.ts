@@ -75,6 +75,7 @@ function groups(settings: Settings): Record<string, Field[]> {
       { key: 'temperature', kind: 'number', step: '0.1' },
       { key: 'numCtx', kind: 'number', step: '512' },
       { key: 'keepAlive', kind: 'text' },
+      { key: 'thinking', kind: 'checkbox' },
       { key: 'maxInputChars', kind: 'number', step: '1000' },
       { key: 'firstResponseTimeoutSec', kind: 'number', step: '30' },
       { key: 'idleTimeoutSec', kind: 'number', step: '30' },
