@@ -32,6 +32,7 @@ describe('cache key', () => {
     ['input limit', (i) => ({ ...i, settings: { ...i.settings, maxInputChars: 5000 } })],
     ['context size', (i) => ({ ...i, settings: { ...i.settings, numCtx: 4096 } })],
     ['temperature', (i) => ({ ...i, settings: { ...i.settings, temperature: 0.9 } })],
+    ['thinking', (i) => ({ ...i, settings: { ...i.settings, thinking: true } })],
     [
       'backup being turned on',
       (i) => ({ ...i, settings: { ...i.settings, fallbackEnabled: true } }),
