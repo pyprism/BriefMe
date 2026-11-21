@@ -71,6 +71,9 @@
   "askPlaceholder": {
     "message": "Ask a question about this article"
   },
+  "statusSending": {
+    "message": "Sending your question..."
+  },
   "statusConnecting": {
     "message": "Connecting to the model..."
   },
@@ -305,6 +308,9 @@
   "field_numCtx": {
     "message": "Context size (num_ctx)"
   },
+  "field_thinking": {
+    "message": "Allow thinking"
+  },
   "field_keepAlive": {
     "message": "Keep alive"
   },
@@ -376,6 +382,9 @@
   },
   "help_numCtx": {
     "message": "Chunk size for long articles. Ollama: also sent to the server. OpenAI-compatible servers: set it to the context length you loaded the model with."
+  },
+  "help_thinking": {
+    "message": "Off (recommended): asks the model to skip its reasoning step. Summaries come faster and need no reasoning. Some servers ignore the request."
   },
   "help_keepAlive": {
     "message": "Ollama only. How long the model stays loaded, for example 10m."
