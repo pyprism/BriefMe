@@ -19,6 +19,11 @@ export interface ChatRequest {
   temperature: number;
   numCtx: number;
   keepAlive?: string;
+  /**
+   * `false` asks the server not to think before answering. `true` or unset leaves the
+   * server default. Servers that do not know the field are retried without it.
+   */
+  thinking?: boolean;
   /** Ask for JSON output. */
   json?: boolean;
   signal?: AbortSignal;
