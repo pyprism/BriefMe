@@ -5,9 +5,11 @@ import {
   DEFAULT_LIST_MS,
   fetchWithRetry,
   linkedController,
+  postJson,
   readTextStream,
   type HttpOptions,
 } from './http';
+import { ThinkFilter } from './think-filter';
 import type { ChatRequest, LLMProvider, ModelInfo } from './types';
 
 export interface OpenAICompatConfig extends HttpOptions {
@@ -60,20 +62,26 @@ export class OpenAICompatProvider implements LLMProvider {
     // `req.json` is not sent as response_format: servers differ (LM Studio rejects json_object).
     // The prompt asks for JSON and the parser tolerates surrounding text.
 
-    const res = await fetchWithRetry(
+    // No standard switch exists: llama.cpp, vLLM and LM Studio read `chat_template_kwargs`,
+    // OpenRouter reads `reasoning`. Servers that reject unknown fields are retried without them.
+    const optional: Record<string, unknown> =
+      req.thinking === false
+        ? { chat_template_kwargs: { enable_thinking: false }, reasoning: { enabled: false } }
+        : {};
+
+    const res = await postJson(
       `${this.cfg.baseUrl}/chat/completions`,
-      {
-        method: 'POST',
-        headers: this.headers(true),
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      },
+      this.headers(true),
+      body,
+      optional,
+      controller.signal,
       this.cfg,
       this.id,
     );
     if (!res.ok) throw await errorFromResponse(res, this.id);
 
     const parser = new SseParser();
+    const filter = new ThinkFilter();
     const handle = function* (events: string[]): Generator<string> {
       for (const data of events) {
         if (data.trim() === '[DONE]') return;
@@ -92,12 +100,15 @@ export class OpenAICompatProvider implements LLMProvider {
           );
         }
         const content = chunk.choices?.[0]?.delta?.content;
-        if (content) yield content;
+        const out = content ? filter.push(content) : '';
+        if (out) yield out;
       }
     };
     for await (const text of readTextStream(res, controller, req.signal, this.cfg, this.id)) {
       yield* handle(parser.push(text));
     }
     yield* handle(parser.flush());
+    const tail = filter.flush();
+    if (tail) yield tail;
   }
 }
