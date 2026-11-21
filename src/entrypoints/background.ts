@@ -404,7 +404,10 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
     });
     const provider = createProvider(settings, secrets);
     modelGate.setLimit(settings.maxParallelRequests);
-    releaseSlot = await modelGate.acquire(controller.signal);
+    releaseSlot = await modelGate.acquire(controller.signal, (ahead) =>
+      post({ type: 'status', phase: 'queued', ahead }),
+    );
+    post({ type: 'status', phase: 'connecting' });
     let answer = '';
     let usedModel = model;
     for await (const token of provider.chat({
@@ -414,6 +417,7 @@ async function handleChat(port: Port, msg: Extract<ClientMessage, { type: 'chat'
       temperature: settings.temperature,
       numCtx: settings.numCtx,
       keepAlive: settings.keepAlive || undefined,
+      thinking: settings.thinking,
       signal: controller.signal,
     })) {
       answer += token;
