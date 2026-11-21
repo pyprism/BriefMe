@@ -49,6 +49,7 @@ export async function* runSummary(input: RunInput): AsyncGenerator<SummaryEvent>
     temperature: settings.temperature,
     numCtx: settings.numCtx,
     keepAlive: settings.keepAlive || undefined,
+    thinking: settings.thinking,
     signal,
     onNotice: (n: ProviderNotice) => notices.push(n),
   };
