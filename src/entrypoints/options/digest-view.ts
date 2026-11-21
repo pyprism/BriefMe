@@ -160,6 +160,7 @@ export async function renderDigest(container: HTMLElement): Promise<void> {
           messages,
           temperature: settings.temperature,
           numCtx: settings.numCtx,
+          thinking: settings.thinking,
         }),
       );
       const sources = items
