@@ -5,9 +5,11 @@ import {
   DEFAULT_LIST_MS,
   fetchWithRetry,
   linkedController,
+  postJson,
   readTextStream,
   type HttpOptions,
 } from './http';
+import { ThinkFilter } from './think-filter';
 import type { ChatRequest, LLMProvider, ModelInfo } from './types';
 
 export interface OllamaConfig extends HttpOptions {
@@ -56,29 +58,33 @@ export class OllamaProvider implements LLMProvider {
     if (req.keepAlive) body.keep_alive = req.keepAlive;
     if (req.json) body.format = 'json';
 
-    const res = await fetchWithRetry(
+    const optional: Record<string, unknown> = req.thinking === false ? { think: false } : {};
+
+    const res = await postJson(
       `${this.cfg.baseUrl}/api/chat`,
-      {
-        method: 'POST',
-        headers: this.headers(true),
-        body: JSON.stringify(body),
-        signal: controller.signal,
-      },
+      this.headers(true),
+      body,
+      optional,
+      controller.signal,
       this.cfg,
       this.id,
     );
     if (!res.ok) throw await errorFromResponse(res, this.id);
 
     const parser = new NdjsonParser();
+    const filter = new ThinkFilter();
     const handle = function* (lines: unknown[]): Generator<string> {
       for (const line of lines as OllamaLine[]) {
         if (line.error) throw new LLMError('server', line.error, undefined, 'ollama');
-        if (line.message?.content) yield line.message.content;
+        const out = line.message?.content ? filter.push(line.message.content) : '';
+        if (out) yield out;
       }
     };
     for await (const chunk of readTextStream(res, controller, req.signal, this.cfg, this.id)) {
       yield* handle(parser.push(chunk));
     }
     yield* handle(parser.flush());
+    const tail = filter.flush();
+    if (tail) yield tail;
   }
 }
