@@ -59,6 +59,37 @@ describe('OllamaProvider', () => {
     });
   });
 
+  it('sends think:false only when thinking is off', async () => {
+    const server = await serve((_req, res) => writeOllamaStream(res, ['x']));
+    const p = new OllamaProvider({ baseUrl: server.url, ...fast });
+    await collect(p.chat(req({ thinking: false })));
+    await collect(p.chat(req({ thinking: true })));
+    await collect(p.chat(req()));
+    const sent = server.requests.map((r) => JSON.parse(r.body) as Record<string, unknown>);
+    expect(sent[0]).toMatchObject({ think: false });
+    expect(sent[1]).not.toHaveProperty('think');
+    expect(sent[2]).not.toHaveProperty('think');
+  });
+
+  it('retries without think when the server answers 400', async () => {
+    const server = await serve((_req, res, body) => {
+      if (body.includes('"think"'))
+        return res.writeHead(400).end('{"error":"does not support thinking"}');
+      return writeOllamaStream(res, ['ok']);
+    });
+    const p = new OllamaProvider({ baseUrl: server.url, ...fast });
+    expect(await collect(p.chat(req({ thinking: false })))).toBe('ok');
+    expect(server.requests).toHaveLength(2);
+  });
+
+  it('strips an inline think block from the answer', async () => {
+    const server = await serve((_req, res) =>
+      writeOllamaStream(res, ['<thi', 'nk>hmm</thi', 'nk>', '\n\nSummary']),
+    );
+    const p = new OllamaProvider({ baseUrl: server.url, ...fast });
+    expect(await collect(p.chat(req()))).toBe('Summary');
+  });
+
   it('lists models', async () => {
     const server = await serve((_req, res) => {
       res
@@ -289,6 +320,21 @@ describe('request deadlines', () => {
 });
 
 describe('OpenAICompatProvider', () => {
+  it('sends thinking switches when off and retries without them on 400', async () => {
+    const server = await serve((_req, res, body) => {
+      if (body.includes('chat_template_kwargs'))
+        return res.writeHead(400).end('{"error":{"message":"Unrecognized request argument"}}');
+      return writeSse(res, ['ok']);
+    });
+    const p = new OpenAICompatProvider({ baseUrl: `${server.url}/v1`, ...fast });
+    expect(await collect(p.chat(req({ thinking: false })))).toBe('ok');
+    expect(server.requests).toHaveLength(2);
+    expect(JSON.parse(server.requests[0]?.body ?? '')).toMatchObject({
+      chat_template_kwargs: { enable_thinking: false },
+    });
+    expect(JSON.parse(server.requests[1]?.body ?? '')).not.toHaveProperty('chat_template_kwargs');
+  });
+
   it('streams SSE deltas and ignores comments and [DONE]', async () => {
     const server = await serve((_req, res) => writeSse(res, ['Al', 'pha']));
     const p = new OpenAICompatProvider({
