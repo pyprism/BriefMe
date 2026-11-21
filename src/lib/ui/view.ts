@@ -57,6 +57,7 @@ export class SummaryView {
   private readonly stopBtn: HTMLButtonElement;
   private readonly metaEl: HTMLElement;
   private readonly statusEl: HTMLElement;
+  private readonly askBtn: HTMLButtonElement;
   private readonly notesEl: HTMLElement;
   private readonly outEl: HTMLElement;
   private readonly qaEl: HTMLElement;
@@ -107,6 +108,7 @@ export class SummaryView {
     this.outEl = h('div', { class: 'out', 'aria-live': 'polite', 'aria-atomic': 'false' });
     this.qaEl = h('div', { class: 'qa' });
     this.errEl = h('div', { class: 'hidden' });
+    this.askBtn = h('button', { text: t('btnAsk'), onclick: () => this.ask() });
     this.askInput = h('input', {
       type: 'text',
       placeholder: t('askPlaceholder'),
@@ -115,12 +117,7 @@ export class SummaryView {
         if (e.key === 'Enter') this.ask();
       }) as EventListener,
     });
-    this.askRow = h(
-      'div',
-      { class: 'ask hidden' },
-      this.askInput,
-      h('button', { text: t('btnAsk'), onclick: () => this.ask() }),
-    );
+    this.askRow = h('div', { class: 'ask hidden' }, this.askInput, this.askBtn);
     this.speakBtn = h('button', { text: t('btnSpeak'), onclick: () => this.toggleSpeak() });
     this.copyFormat = h(
       'select',
@@ -358,6 +355,7 @@ export class SummaryView {
     const port = this.chatPort;
     this.chatPort = null;
     port?.disconnect();
+    if (port) this.setAsking(false);
   }
 
   private handle(msg: ServerMessage): void {
@@ -454,6 +452,18 @@ export class SummaryView {
     if (!question || !this.article || this.chatPort) return;
     this.askInput.value = '';
     const answerEl = h('div', { class: 'out', 'aria-live': 'polite' });
+    // Feedback at once, before the background has answered anything.
+    const showStatus = (text: string) =>
+      answerEl.replaceChildren(
+        h(
+          'div',
+          { class: 'status', role: 'status' },
+          h('span', { class: 'spin', 'aria-hidden': 'true' }),
+          h('span', { text }),
+        ),
+      );
+    showStatus(t('statusSending'));
+    this.setAsking(true);
     this.qaEl.append(h('div', { class: 'q', text: question }), answerEl);
     answerEl.scrollIntoView({ block: 'nearest' });
 
@@ -462,14 +472,22 @@ export class SummaryView {
     // Replies from a port that was cancelled (closed or regenerated) must not touch the view.
     const current = () => this.chatPort === port;
     const finish = () => {
-      if (current()) this.chatPort = null;
+      if (current()) {
+        this.chatPort = null;
+        this.setAsking(false);
+      }
       port.disconnect();
     };
     let answer = '';
     port.onMessage.addListener((raw) => {
       if (!current()) return;
       const msg = raw as ServerMessage;
-      if (msg.type === 'token') {
+      if (msg.type === 'status') {
+        if (answer) return;
+        showStatus(
+          msg.phase === 'queued' ? `${t('statusQueued')} ${msg.ahead ?? 1}` : t('statusConnecting'),
+        );
+      } else if (msg.type === 'token') {
         answer += msg.text;
         answerEl.innerHTML = renderMarkdown(answer);
       } else if (msg.type === 'done') {
@@ -486,6 +504,7 @@ export class SummaryView {
     port.onDisconnect.addListener(() => {
       if (current()) {
         this.chatPort = null;
+        this.setAsking(false);
         if (!answer) answerEl.textContent = t('errDisconnected');
       }
     });
@@ -497,6 +516,13 @@ export class SummaryView {
       question,
     };
     port.postMessage(message);
+  }
+
+  /** Locks the question box while an answer is pending so a second send is not silently dropped. */
+  private setAsking(asking: boolean): void {
+    this.askInput.disabled = asking;
+    this.askBtn.disabled = asking;
+    if (!asking) this.askInput.focus();
   }
 
   private async copy(button: HTMLButtonElement): Promise<void> {
