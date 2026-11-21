@@ -33,6 +33,8 @@ export interface Settings {
   temperature: number;
   numCtx: number;
   keepAlive: string;
+  /** Let the model think before answering. Off asks the server to skip it. */
+  thinking: boolean;
   systemPrompt: string;
   promptTemplate: string;
   maxInputChars: number;
@@ -77,6 +79,7 @@ export const DEFAULT_SETTINGS: Settings = {
   temperature: 0.3,
   numCtx: 8192,
   keepAlive: '',
+  thinking: false,
   systemPrompt: '',
   promptTemplate: '',
   maxInputChars: 80000,
@@ -184,6 +187,7 @@ export function validateSettings(input: Partial<Settings>): {
     temperature: num(input.temperature, 0, 2, d.temperature),
     numCtx: Math.round(num(input.numCtx, 1024, 1_000_000, d.numCtx)),
     keepAlive: str(input.keepAlive),
+    thinking: input.thinking === true,
     systemPrompt: typeof input.systemPrompt === 'string' ? input.systemPrompt : '',
     promptTemplate: typeof input.promptTemplate === 'string' ? input.promptTemplate : '',
     maxInputChars: Math.round(num(input.maxInputChars, 2000, 2_000_000, d.maxInputChars)),
