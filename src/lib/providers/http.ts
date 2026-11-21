@@ -77,6 +77,33 @@ export async function fetchWithRetry(
   }
 }
 
+/**
+ * POST a JSON body. `optional` holds request fields some servers reject (for example a switch
+ * for thinking). If the server answers 400 they are dropped and the request is sent once more.
+ */
+export async function postJson(
+  url: string,
+  headers: Record<string, string>,
+  body: Record<string, unknown>,
+  optional: Record<string, unknown>,
+  signal: AbortSignal,
+  opts: HttpOptions,
+  provider: string,
+): Promise<Response> {
+  const send = (payload: Record<string, unknown>) =>
+    fetchWithRetry(
+      url,
+      { method: 'POST', headers, body: JSON.stringify(payload), signal },
+      opts,
+      provider,
+    );
+  if (Object.keys(optional).length === 0) return send(body);
+  const res = await send({ ...body, ...optional });
+  if (res.status !== 400) return res;
+  await res.body?.cancel().catch(() => {});
+  return send(body);
+}
+
 export async function errorFromResponse(res: Response, provider: string): Promise<LLMError> {
   let detail = '';
   try {
