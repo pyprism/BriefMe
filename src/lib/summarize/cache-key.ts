@@ -14,6 +14,7 @@ export interface CacheKeyInput {
     | 'maxInputChars'
     | 'numCtx'
     | 'temperature'
+    | 'thinking'
     | 'fallbackEnabled'
     | 'fallbackType'
     | 'fallbackBaseUrl'
@@ -51,6 +52,7 @@ export function cacheKeyParts(input: CacheKeyInput): string[] {
     String(settings.maxInputChars),
     String(settings.numCtx),
     String(settings.temperature),
+    settings.thinking ? 'think-on' : 'think-off',
     // A summary may have been written by the backup, so its setup is part of the identity.
     settings.fallbackEnabled ? 'backup-on' : 'backup-off',
     settings.fallbackEnabled ? settings.fallbackType : '',
